@@ -1,0 +1,121 @@
+Reconnaissance Overview
+There are two types of reconnaissance adversaries may conduct as part of their attack campaigns: active and passive. Each type has its advantages and disadvantages for both adversaries and defenders, alike. 
+
+﻿
+
+Active Reconnaissance 
+﻿
+
+Active reconnaissance requires the adversary to be actively hands-on in the network, searching for any and all hosts, devices, and useful information. Active reconnaissance TTPs can be highly effective, but typically leave artifacts, or evidence, on the target network. Adversaries can employ tools such as Network Mapper (Nmap) or port scan to obtain Internet Protocol (IP) addresses and ports available on the network. However, a significant drawback to active reconnaissance is the amount of activity and noise it creates on the network. Analysts can identify and detect this type of activity by monitoring the network. Due to the evidence that remains after the activity, active reconnaissance is the only TTP that is detectable and can be hunted in a live environment. 
+
+﻿
+
+Passive Reconnaissance 
+﻿
+
+Adversaries use passive reconnaissance TTPs to discover network or host information that does not require sending communications to or through the network. Passive reconnaissance is much harder to detect than active reconnaissance. This is because passive reconnaissance lacks network-related communications or probes for defenders to track through network monitoring systems. 
+
+﻿
+
+Adversaries may use host-related commands that return cached communications or network sniffers as part of their passive techniques. Adversaries employing passive reconnaissance commonly conduct packet sniffing through tools such as Wireshark. A packet sniffer returns communication information from, to, and between networks. An adversary needs to have a foothold in a network to enable packet sniffing. To detect packet sniffing in a live environment, analysts review host logs collected by an Endpoint Detection and Response (EDR) solution. The logs contain connection details, such as IP addresses and bytes communicated, which allow analysts to identify anomalous and suspicious activity. Other passive reconnaissance techniques include using host-based tools that return cached information about the network, like the command arp, which returns the addresses of hosts that have been recently viewed and stored in a cache.
+
+Reconnaissance TTPs
+Adversaries have a wide variety of options to conduct both active and passive reconnaissance of a target network. Adversaries employ TTPS outlined and described in the MITRE Adversarial Tactics, Techniques, and Common Knowledge (ATT&CK®) framework when conducting reconnaissance to gather information about the target network. Common reconnaissance TTPs include the following, as presented in Figure 3.1-1, below:
+
+﻿
+
+﻿
+
+Figure 3.1-1
+
+﻿
+
+Active Scanning
+﻿
+
+Adversaries conduct active scanning by searching the target network using the current traffic on it. This hands-on approach to reconnaissance typically involves sending communications to reachable hosts on the network. The hosts then return communications that provide information. The information returned typically pertains to IP addresses and other information that adversaries use to assess network design and infrastructure. 
+
+﻿
+
+Phishing for Information
+﻿
+
+Adversaries phish for information by sending malicious messages with the intent to obtain sensitive information. Phishing for information relies on an adversary’s ability to trick victims by posing as a legitimate persona or organization. An adversary then attempts to collect critical information such as usernames, passwords, names, addresses, or contact information. There is no bad information in the reconnaissance stage of a campaign. All information is considered useful. An example of phishing during active reconnaissance is Advanced Persistent Threat 28 (APT28). According to MITRE ATT&CK®, this threat group used phishing to obtain and exploit credentials. 
+
+﻿
+
+Searching Closed Sources
+﻿
+
+An adversary may obtain or purchase information through alternative, non-reputable sources or locations. The information they receive may be used in either ongoing or future campaigns. The information is typically collected from previous campaigns or data breaches that were conducted by other adversaries.
+
+﻿
+
+Searching Open Sources (Databases, Domains, Websites)
+﻿
+
+Adversaries may find the information they need through open sources. This includes open technical databases (T1596) as well as open websites and domains (T1593). Datastores pertaining to technical artifacts may provide information such as the registration of domains or previous network scans. Open and public websites, domains, or social media accounts may provide business-related information such as hiring needs or awarded contracts. 
+
+Hunting for Reconnaissance
+Hunting for adversary activity is significantly easier when analysts recognize the tools adversaries use on the network. Nmap is a primary tool for active reconnaissance. Nmap provides the features and capabilities necessary for adversaries to identify network components and design. Nmap also leaves evidence and artifacts of its activities for analysts to investigate during a hunt.
+
+﻿
+
+Nmap Overview
+﻿
+
+Nmap is a free and open-source utility for network discovery and security auditing. Nmap is a common tool used by the adversary to conduct reconnaissance activities. This utility provides users the capability to scan and derive information about devices on the network. Scanning with Nmap provides data about a device's Operating System (OS) and the ports being used. 
+
+﻿
+
+Hunting Overview
+﻿
+
+Hunting for active reconnaissance requires searching for artifacts left by Nmap in network connection logs such as host or Zeek logs. Once ingested into a SIEM, analysts can view and analyze the logs to identify anomalous connection patterns.
+
+﻿
+
+Host Logs﻿
+
+﻿
+
+Log files are collected on a variety of hosts and provide information for identifying active reconnaissance activity. Any log file that contains information regarding network connections and communications is useful in a hunt for active reconnaissance activity. Hosts that contain an EDR agent, host-based firewalls, or an Intrusion Detection System (IDS) agent provide the necessary logs for analysts to review. The log files collected on the hosts can be forwarded to a Security Information and Event Manager (SIEM), such as Elastic Stack or Splunk, for expanded visualization and analysis. Logs that collect processes provide analysts with details on both active and passive reconnaissance activity.
+
+﻿
+
+Zeek Connection Logs﻿
+
+﻿
+
+Hunting and detecting reconnaissance activity rely on ample and accurate network information aggregation. One tool that provides the necessary network information is Zeek, a free and open-source software network analysis framework. Zeek provides network data logs regarding network connections. These logs include a comprehensive record of every connection it catches on the wire. The data includes fields such as Hypertext Transfer Protocol (HTTP) sessions with their requested Uniform Resource Identifier (URIs) and Domain Name Service (DNS) requests with replies.
+
+﻿
+
+SIEM﻿
+
+﻿
+
+A SIEM such as Elastic Stack or Splunk provides the necessary data housing and visualization platforms for Zeek logs. Defense analysts hunt reconnaissance activity by using a SIEM to manipulate and analyze the Zeek logs. One component of Nmap that is quickly searchable in a SIEM is the number of ports associated with a given IP address. Nmap scans the top 1000 ports by default and creates a data table that displays source IP address, destination IP address, and number of destination ports. A visualization based on the number of ports scanned reveals the instances where Nmap was used. This lesson demonstrates this detection method in a later section.
+
+Which statement describes the reconnaissance technique of phishing for information?
+Send malicious messages with the intent to obtain sensitive information.
+
+Which statement describes the reconnaissance technique of active scanning?
+﻿
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
