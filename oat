@@ -1815,7 +1815,7 @@ PS C:\Users\trainee\Desktop> Get-WinEvent -FilterHashTable @{path="*.evtx"; Star
 
 The command in Step 6 uses "glob" shell expansion within the path variable path="*.evtx" to specify all the saved event logs. Its output is displayed in Figure 2.5-21.
 
-
+edit signa rules
 
 
   
