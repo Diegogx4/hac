@@ -1098,6 +1098,307 @@ Figure 5.2-1, below, displays the detection report:
 
 Some rootkits are tagged based on their activity, while other tags are based on file contents. The logs display the processes and files that are suspicious and should be examined. Use the information from this lab to answer the next question. 
 
+Linux Persistence Overview
+A threat actor gains persistence on a Linux system by creating a backdoor, in case access to the target system is lost. Completely ridding a system of a threat actor is therefore difficult for defenders since the adversaries are able to continue gaining access through their persistence methods. If defenders are not aware of persistence TTPs on Linux, they will only be able to remove a portion of the threat actor toolkit, leaving the system vulnerable for the next inevitable attack.
+
+﻿
+
+Adversaries have many methods of establishing persistence from which to choose. Detecting each method requires proper logging. A simple way to gather the required logging is to deploy Elastic’s Auditbeat configured with the auditd, system, and file integrity modules while employing a best practice auditd rule set. Florian Roth offers one such rule set on GitHub, which is provided in the additional resource section of this task. 
+
+﻿
+
+Understanding the basic and advanced methods of Linux persistence and how to detect them allows defenders to more decisively expel adversaries from a system the first time, by ensuring that no backdoors exist. This detection becomes more difficult when threat actors deploy kernel rootkits using a persistence method because kernel rootkits are able to intercept system calls. Additional details about working with this type of TTP is explained in an upcoming module.
+
+Which Elastic Beat provides auditd, system, and file integrity modules?
+auditbeat
+
+Common Linux Persistence Methods
+There are many different methods of obtaining persistence on a Linux system. Defenders who continuously learn new methods of persistence are better prepared to ensure the detections in place are effective for catching adversaries. This section introduces four advanced methods that fall under the following MITRE Adversarial Tactics, Techniques, and Common Knowledge (ATT&CK®) techniques:
+
+T1543.002 Systemd Service
+
+T1037.004 Run Control (RC) Scripts
+
+T1098 Secure Shell (SSH) Authorized Keys
+
+T1505.003 Web Shell
+
+T1574.008 Path Interception by Search Order Hijacking
+
+
+Systemd Service and RC Scripts
+﻿
+
+Adversaries may obtain persistence by creating or modifying a service to execute a malicious payload. Every service has a service unit file that controls how and when the service is run. These files are located in the directories /etc/systemd/system and /usr/lib/systemd/system and have an extension of .service. Modifying a service unit file in the aforementioned location requires root privileges by default. This prevents a low privilege user from modifying those service unit files. However, user-level persistence is still possible by modifying or creating service unit files located in the directory ~/.config/systemd/user.
+
+﻿
+
+To detect the systemd services used for persistence, defenders should monitor for usage of the commands systemctl and service. Defenders should also monitor for new or modified files in the following directories:
+
+/etc/systemd/system
+
+/usr/lib/systemd/system/
+
+~/.config/systemd/user/
+
+Before systemd existed, init was the standard daemon used to initialize, manage, and track services and daemons. Threat actors still use init to maintain persistence using RC scripts. RC scripts are executed during system startup to launch custom services. Threat actors can modify the RC scripts to contain paths to malicious binaries and shell commands. Detecting this activity requires monitoring and auditing the file /etc/rc.local for unapproved changes.
+
+﻿
+
+Determining potential malicious activity is much easier when defenders have a baseline of approved services. Another way to identify a potentially malicious service is by researching the name of the service. If information about the service is unavailable online, this should raise suspicions. If the name of an enabled service does not look familiar, investigating the surrounding traffic can provide additional context for determining whether or not the service is legitimate. For example, in an investigation of an unrecognized service, an analyst may find suspicious network traffic occurring right after the service was enabled. That traffic may reveal an attempted callback for a reverse shell or similar unexpected activity.
+
+﻿
+
+SSH Authorized Keys
+﻿
+
+The SSH file /home/<user>/.ssh/authorized_keys defines the keys that are authorized for use during key-based authentication. Threat actors abuse this feature to gain persistence on a host by creating their own SSH key and adding the public key to the file authorized_keys.
+
+﻿
+
+File integrity logging is useful for detecting this type of activity because changes to the file authorized_keys are uncommon. Defenders can monitor for changes to this file to receive alerts that should prompt further investigation.
+
+﻿
+
+Another file that should be monitored is /etc/ssh/sshd_config. A threat actor may add their public key to authorized_keys and find that the file sshd_config does not allow for public key authentication. In this case, the threat actor must edit the configuration file sshd_config and change the values for the fields PubkeyAuthentication and RSAAuthentication to yes.
+
+﻿
+
+Web Shell
+﻿
+
+One type of backdoor on a Linux web server is a web shell. A web shell is a script that allows threat actors to use the web server as a gateway into a network. Analysts can audit changes to public folders to catch any malicious web scripts being added. These folders include /var/www/html and any other directory hosting internet-facing files. Another option is to monitor for web servers accessing files that are not in the web directory or files that are spawning processes that a web server should not need to spawn.
+
+﻿
+
+Path Interception by Search Order Hijacking (Binary Wrapping)
+﻿
+
+A threat actor can hijack the use of common system commands on Linux to create a stealthy backdoor. For example, adding a binary named hostname to the directory /usr/local/bin/ hijacks the use of /bin/hostname. This is because the user-specific bin directory has priority over the system-wide bin directory when running a command without the absolute path. The threat actor can add anything they want to the directory /usr/local/bin/hostname, make it executable, and then use that binary in a scheduled task to inconspicuously launch their backdoor. A defender can check the search order by running the command echo $PATH to list the current $PATH configuration. The search order priority is presented left to right. A threat actor can modify the $PATH to change the search order in preparation for a persistence method they plan on using. Organizations should always use absolute paths in system administration scripts to avoid search order hijacking.
+
+﻿
+
+Analysts may need to monitor various types of activities to effectively detect when file permissions are being modified. Auditing the usage of the command chmod may help analysts identify suspicious files in user-specific bin locations that threat actors are making executable. However, a threat actor may not need chmod if they change the command umask to 000 and then create a file because this makes the file globally executable. Analysts should be suspicious if they see a normal system command that is located by default in /bin or if the command is added to /usr/local/bin and made an executable. Additionally, monitoring surrounding network traffic after the execution of a suspicious binary often leads to the detection of suspicious network traffic.
+
+﻿
+
+﻿
+
+Detection Recommendations
+﻿
+
+Table 5.3-1, below, provides a quick reference of the items to monitor to detect each of the common persistence TTPs described above. These items comprise a mix of directories and files (paths), commands, and activities.
+
+﻿Indications of Linux Persistence
+All four of the common Linux persistence methods were used in the large dataset from the previous workflow. These methods include the following:
+
+Systemd service
+
+SSH authorized_keys
+
+Web shell
+
+Binary wrapping
+
+Systemd Service
+﻿
+
+Description
+﻿
+
+A malicious service was created called ntsh.service. It was started, enabled, and daemon-reload was run.
+
+﻿
+
+Query
+﻿
+
+Running the following query and then creating a table visualization to review all the process.title values reveals the suspicious process:
+
+process.title: (*systemctl* OR *service*)
+﻿
+
+SSH Authorized Keys
+﻿
+
+Description
+﻿
+
+The root user modified /home/JCTE/.ssh/authorized_keys and /etc/ssh/sshd_config.
+
+﻿
+
+Query
+﻿
+
+Running the following query reveals this activity:
+
+event.module: file_integrity AND file.path: (*.ssh/authorized_keys* OR */etc/ssh/sshd_config*)
+﻿
+
+Web Shell
+﻿
+
+Description
+﻿
+
+A suspicious php script named bdoor.php was created in /var/www/html.
+
+﻿
+
+Query
+﻿
+
+Running the following query reveals this activity:
+
+process.title: */var/www/html* OR file.path: */var/www/html*
+﻿
+
+Binary Wrapping
+﻿
+
+Description
+﻿
+
+A suspicious binary named date was created in /usr/local/bin. The binary date is a standard system binary that is located in /bin by default.
+
+﻿
+
+Query
+﻿
+
+Running the following query reveals this activity:
+
+process.title: */usr/local/bin* OR file.path: */usr/local/bin*
+
+MITRE D3FEND
+MITRE D3FEND Overview
+﻿
+
+MITRE developed D3FEND as a repository of defensive cybersecurity techniques designed to counteract offensive techniques by adversaries. Understanding D3FEND is an asset for any party involved in security systems architecture because it is an effective resource for helping to keep networks as secure as possible. 
+
+﻿
+
+D3FEND consists of five stages. Table 5.4-1, below, presents the critical goal and common defense techniques employed at each stage.
+
+MITRE D3FEND and Incident Response
+﻿
+
+Incident response techniques and strategies are found in the isolate, deceive, and evict stages. Once an incident has been detected, it is the role of an incident response team to isolate the activity to a portion of the network, lure the activity to an intended location or object, and then evict the activity from the network. 
+
+incident Response
+Incident Response Overview
+﻿
+
+Incident response is a primary component of the defense of any network. The National Institute of Standard and Technology (NIST) defines incident response as “the mitigation of violations of security policies and recommended practices.” However, this mitigation does not start solely after an incident occurs. Incident response is an ongoing process, so it is a best practice for analysts and teams to be ready at all times. To conduct effective IR mitigation, defenders require the most recent applicable techniques and threat intelligence to prepare for and respond to adversaries. Below are the tasks surrounding the preparation and response activities that apply to all types of IR. 
+
+﻿
+
+Preparation 
+﻿
+
+IR preparation includes methods and strategies for arranging response techniques to an incident. Efficient preparation leads to efficient IR. Common preparation strategies include the following:
+
+Synchronize time across the network
+Manage logs
+Establish Baseline
+Synchronize Time Across the Network﻿
+
+﻿
+
+A network may include portions, devices, and hosts physically located in different locations. In the preparation stage, it is critical to synchronize time across the network so that defenders can make sense of event data such as the time and sequence of events. 
+
+﻿
+
+Manage Logs﻿
+
+﻿
+
+A Security Information Event Management (SIEM) tool that analyzes log entries and activity enables defenders to address incidents effectively and appropriately. In preparation for IR, logs that require further analysis should be generated, saved, and sent to the appropriate SIEM to refer back to, as needed.
+
+﻿
+
+Establish Baseline﻿
+
+﻿
+
+Baselining refers to documenting, saving, and analyzing any hardware, software, databases, and relevant documentation for a system, at a given point in time. Any components on the network that are suspected to be affected by an incident require a baseline. Any data and applicable resources should then be duplicated and kept as a backup. 
+
+﻿
+
+Response 
+﻿
+
+The response part of IR includes the methods and strategies used to address and mitigate an incident. When responding to an incident, Cyber Protection Teams (CPTs) must complete the following steps:
+
+Analyze the scope
+Build a timeline
+Confirm the incident
+Isolate affected hosts
+Deceive and evict adversary activity 
+Analyze memory
+Step 1: Analyze the Scope﻿
+
+﻿
+
+One component in responding to an incident is to understand the scope. An incident can be triggered with only a small portion of intelligence, however, the scope starts growing as response activities get underway. Defenders may need to triage the incident remotely to prevent the scope of the incident from growing. Endpoint tools are helpful for remote triage. An endpoint tool such as Beats collects and sends data to the Elastic Stack for analysts to view and assess remotely. The remote access to host data enables an effective assessment and effective means of response while also reducing the time to respond.
+
+﻿
+
+Step 2: Build a Timeline﻿
+
+﻿
+
+A timeline helps to understand the time and duration of relevant actions. Construction of a timeline may provide analysts a clear picture of the sequence of events leading to the incident. There are several documents to examine to build a timeline, as covered in the Cyber Defense Analyst - Basic (CDAB) course. Examining external reporting and observing the Operation Notes (OPNOTE) of other analysts are critical tasks at this stage. Building a timeline of the incident involves the following key documents:
+
+Situational Reports (SITREP): Routinely generated to provide updates to higher elements on a daily, weekly, per-phase, or on request.
+Tactical Assessments: Low-level assessments that often contain their own Measures of Effectiveness (MOE) and Measures of Performance (MOP).
+OPNOTEs: In-depth and technical information about the events that occur during mission execution, containing very specific timestamps and events. When more detail than a high-level summary is needed, consult the OPNOTEs.
+OPNOTEs are helpful in developing an execution timeline that includes reports on health and status as well as cyber IR. 
+
+﻿
+
+Many US government agencies publish health and status reports on a regular basis to aid with situational awareness of current operational activities. This enables the capacity to build, defend, and operate in cyberspace. These reports have a variety of functions, but they are especially useful in establishing past trends and assessing their impact on the mission partner’s network.
+
+﻿
+
+Additionally, DoD agencies must abide by the cyber incident handling program defined in the Chairman of the Joint Chiefs of Staff Manual (CJCSM) 6510.01B. This document outlines a specific incident response report template. The completed reports are stored in the Joint Incident Management System (JIMS) on Secret Internet Protocol Router Network (SIPRNet). Past incidents provide a historic picture of the network, as well.
+
+﻿
+
+Step 3: Confirm the Incident﻿
+
+﻿
+
+In the third step, defenders confirm the incident prior to employing any techniques aimed at addressing the incident, to ensure their plans are valid. In this stage, any reported Indicators of Compromise (IOC) and Tactics, Techniques, and Procedures (TTP) are leveraged to check and validate the incident occurred on the network. Confirming the incident may include tasks such as checking for unusual processes, altered system files, hidden files or processes, and modified log entries. 
+
+﻿
+
+Step 4: Isolate Affected Hosts﻿
+
+﻿
+
+Isolating affected hosts is the temporary removal of the hosts from the network. An affected host may contain components designed to impact other portions, devices, or hosts on the network. If a host is affected by an incident it must be isolated in an effort to contain the incident. 
+
+﻿
+
+Step 5: Deceive and Evict Adversary Activity 
+
+﻿
+
+Deceiving and evicting adversary activity involves luring the adversary to an intended location of the network and removing them from the network. Options for luring adversaries include developing honeypots or decoy files and controlled areas containing information that would be useful to the adversary. When the adversary interacts with the decoy, strategies such as account locking and process termination are implemented to evict the adversary from the network.
+
+﻿
+
+Step 6: Analyze Memory
+
+﻿
+
+Memory analysis involves strategies to capture and analyze the components that comprise the memory of affected hosts. Strategies in memory analysis include dumping memory from the affected hosts. Once the memory is dumped, it can be reassembled in a safe environment for further analysis. Saving the memory from the incident can aid in the defense measures to prevent similar incidents from reoccurring on the network. 
+
+﻿
+
+
 
 
 
