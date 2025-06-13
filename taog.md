@@ -1387,6 +1387,14 @@ Step 6: Analyze Memory
 Memory analysis involves strategies to capture and analyze the components that comprise the memory of affected hosts. Strategies in memory analysis include dumping memory from the affected hosts. Once the memory is dumped, it can be reassembled in a safe environment for further analysis. Saving the memory from the incident can aid in the defense measures to prevent similar incidents from reoccurring on the network. 
 
 
+![image](https://github.com/user-attachments/assets/ea16a0ad-6a47-42c6-bfc8-45e6696b2221)
+
+
+![image](https://github.com/user-attachments/assets/204ee590-2fc4-44ea-afef-145eeb12914f)
+
+
+![image](https://github.com/user-attachments/assets/febdb049-8069-4af3-8c7c-83ed1184fc14)
+
 
 
 
