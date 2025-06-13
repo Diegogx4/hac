@@ -25,16 +25,6 @@ NOTE: Some Unix-like variations use PID 0 as the first process.
 
 The directory /proc displays additional numbered directories. Each process within the Linux system has a directory within /proc represented by the process PID number. Other named folders within /proc contain system statistics such as memory (meminfo) or CPU information (cpuinfo). Some of the directories, files, and file containers within /proc are illustrated in Figure 5.1-2, below:
 
-﻿
-
-﻿
-
-﻿
-
-Figure 5.1-2﻿
-
-﻿
-
 Within the numbered PID folders are other files that contain information related to the process such as the process name and status. Some of the key files within the numbered directories include the following:
 
 cmdline: Command line of the process
@@ -1396,7 +1386,10 @@ Step 6: Analyze Memory
 
 Memory analysis involves strategies to capture and analyze the components that comprise the memory of affected hosts. Strategies in memory analysis include dumping memory from the affected hosts. Once the memory is dumped, it can be reassembled in a safe environment for further analysis. Saving the memory from the incident can aid in the defense measures to prevent similar incidents from reoccurring on the network. 
 
-﻿
+
+
+
+
 
 
 
