@@ -5312,9 +5312,19 @@ image
 
 image
 
-
-
-
+kibana timeframe and ip 
+message|contains << for script just in case
+| select -expandproperty message                       for script if it doesnt work the first time
+host.ip look at the question is it asking for the payload or ip's
+ip
+install packages dpkg -l <<<<<<<<<<<<<<<<
+post is the server response the get is the user getting it
+                       through what port does it connect with = its own port
+                                                 Diamorphine
+                                                 /var/www/ >> ls -l
+                                                 ls -l shell.php  sooooooooooooooo /var/www/html/shel.php      linux persistance 
+                                                 rhp or server or client
+                                                 remember to pass
 
 
 
