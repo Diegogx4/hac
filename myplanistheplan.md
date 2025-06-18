@@ -5325,6 +5325,24 @@ post is the server response the get is the user getting it
                                                  ls -l shell.php  sooooooooooooooo /var/www/html/shel.php      linux persistance 
                                                  rhp or server or client
                                                  remember to pass
+Which command returns services on the host?
+systemctl list-units --type=service
+
+Which command returns processes and associated services on the host?
+systemctl status | less
+
+Which service is associated with Netcat?
+netlibconf.service
+
+Which command returns the details about the service netlibconf.service?
+systemctl status netlibconf
+
+ls -la /lib/systemd/system/netlibconf.service
+^^^ to find users
+
+Which permission allowed the user bob to access, modify, and start the netlibconf.service?
+-rw-r--r– 1 bob bob 140 Apr 21 13:09 /lib/systemd/system/netlibconf.service
+/usr/lib/systemd/system is a world-writable directory
 
 
 
